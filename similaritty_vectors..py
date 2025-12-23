@@ -96,6 +96,8 @@ def main():
     print("\n\n=== Architecture Battle: CBOW vs. Skip-gram ===")
     print(f"CBOW Training Time:      {cbow_time:.4f} s")
     print(f"Skip-gram Training Time: {skipgram_time:.4f} s")
+    print("\nObservation:")
+    print("CBOW was faster in this run.")
     
     if skipgram_time > cbow_time:
         factor = skipgram_time / cbow_time
@@ -106,7 +108,7 @@ def main():
     print("\nObservation:")
     print("Does Skip-gram provide qualitatively better results for 'Trump'?")
     print("end of the program, have a nice day")
-    
+    print
 
 if __name__ == "__main__":
     main()
