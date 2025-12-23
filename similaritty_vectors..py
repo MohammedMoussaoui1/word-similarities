@@ -11,14 +11,7 @@ logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=lo
 logging.getLogger("gensim").setLevel(logging.WARNING)
 
 
-def setup_nltk():
-    """Download necessary NLTK data."""
-    try:
-        nltk.data.find('tokenizers/punkt')
-    except LookupError:
-        print("Downloading NLTK punkt tokenizer...")
-        nltk.download('punkt')
-        nltk.download('punkt_tab')
+
 
 def load_data(data_dir):
     """Load and tokenize data from text files in the directory."""
@@ -75,7 +68,7 @@ def train_and_evaluate(documents, architecture, target_word, epochs=30):
     return duration
 
 def main():
-    setup_nltk()
+    
     
     data_directory = os.path.join(os.getcwd(), "Data")
     documents = load_data(data_directory)
