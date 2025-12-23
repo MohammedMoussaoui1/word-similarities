@@ -1,28 +1,15 @@
 import os
 import time
-import nltk
 from gensim.models import Word2Vec
 from nltk.tokenize import sent_tokenize, word_tokenize
 import logging
-
+import nltk
 # Configure logging to suppress verbose gensim output
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 # Suppress INFO logs from gensim to keep output clean for the user
 logging.getLogger("gensim").setLevel(logging.WARNING)
 
 
-<<<<<<< HEAD
-def setup_nltk():
-    """Ensure required NLTK resources are available."""
-    resources = ["punkt", "punkt_tab"]
-    for resource in resources:
-        try:
-            nltk.data.find(f"tokenizers/{resource}")
-        except LookupError:
-            print(f"Downloading NLTK resource: {resource}")
-            nltk.download(resource)
-=======
->>>>>>> anna
 
 
 def load_data(data_dir):
