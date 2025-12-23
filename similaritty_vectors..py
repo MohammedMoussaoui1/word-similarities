@@ -105,7 +105,7 @@ def main():
         
     print("\nObservation:")
     print("Does Skip-gram provide qualitatively better results for 'Trump'?")
-   
+    print("end of the program, have a nice day")
     
 
 if __name__ == "__main__":
