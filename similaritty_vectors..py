@@ -12,13 +12,15 @@ logging.getLogger("gensim").setLevel(logging.WARNING)
 
 
 def setup_nltk():
-    """Download necessary NLTK data."""
-    try:
-        nltk.data.find('tokenizers/punkt')
-    except LookupError:
-        print("Downloading NLTK punkt tokenizer...")
-        nltk.download('punkt')
-        nltk.download('punkt_tab')
+    """Ensure required NLTK resources are available."""
+    resources = ["punkt", "punkt_tab"]
+    for resource in resources:
+        try:
+            nltk.data.find(f"tokenizers/{resource}")
+        except LookupError:
+            print(f"Downloading NLTK resource: {resource}")
+            nltk.download(resource)
+
 
 def load_data(data_dir):
     """Load and tokenize data from text files in the directory."""
