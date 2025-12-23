@@ -11,6 +11,7 @@ logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=lo
 logging.getLogger("gensim").setLevel(logging.WARNING)
 
 
+<<<<<<< HEAD
 def setup_nltk():
     """Ensure required NLTK resources are available."""
     resources = ["punkt", "punkt_tab"]
@@ -20,6 +21,8 @@ def setup_nltk():
         except LookupError:
             print(f"Downloading NLTK resource: {resource}")
             nltk.download(resource)
+=======
+>>>>>>> anna
 
 
 def load_data(data_dir):
@@ -77,7 +80,7 @@ def train_and_evaluate(documents, architecture, target_word, epochs=30):
     return duration
 
 def main():
-    setup_nltk()
+    
     
     data_directory = os.path.join(os.getcwd(), "Data")
     documents = load_data(data_directory)
