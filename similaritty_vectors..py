@@ -105,8 +105,8 @@ def main():
         
     print("\nObservation:")
     print("Does Skip-gram provide qualitatively better results for 'Trump'?")
-    print("Check the semantic relevance of the word lists above.")
-    print('end of the program')
+   
+    
 
 if __name__ == "__main__":
     main()

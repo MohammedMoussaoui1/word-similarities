@@ -6,8 +6,7 @@ __pycache__/
 venv/
 .env/
 
-# OS
-.DS_Store
+
 
 # NLTK data (optional if downloaded locally)
 nltk_data/
