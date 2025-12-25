@@ -21,11 +21,12 @@ logging.getLogger("gensim").setLevel(logging.WARNING)
 # -------------------------
 def setup_nltk():
     """
-    Ensure required NLTK resources exist.
-    If they cannot be prepared, fail hard.
+    Ensure all required NLTK resources are available.
+    Fail fast if something cannot be prepared.
     """
     required_resources = [
-        "tokenizers/punkt"
+        "tokenizers/punkt",
+        "tokenizers/punkt_tab"
     ]
 
     for resource in required_resources:
@@ -33,14 +34,15 @@ def setup_nltk():
             nltk.data.find(resource)
         except LookupError:
             print(f"NLTK resource missing: {resource}. Downloading...")
-            nltk.download("punkt")
+            nltk.download(resource.split("/")[-1], quiet=False)
 
-            # Verify again
-            try:
-                nltk.data.find(resource)
-            except LookupError:
-                print(f"FATAL: Failed to prepare NLTK resource: {resource}")
-                sys.exit(1)  # <-- CI FAILS HERE
+    # Final verification
+    for resource in required_resources:
+        try:
+            nltk.data.find(resource)
+        except LookupError:
+            raise RuntimeError(f"FATAL: Required NLTK resource still missing: {resource}")
+
 
 
 # -------------------------
