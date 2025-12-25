@@ -42,6 +42,12 @@ def load_data(data_dir):
     print(f"Loaded {len(documents)} sentences from {file_count} files.")
     return documents
 
+def format_time(seconds):
+    """Format time in seconds or milliseconds."""
+    if seconds < 1.0:
+        return f"{seconds * 1000:.2f} ms"
+    return f"{seconds:.4f} s"
+
 def train_and_evaluate(documents, architecture, target_word, epochs=30):
     """Train Word2Vec model and evaluate."""
     sg_param = 1 if architecture == "Skip-gram" else 0
@@ -56,7 +62,7 @@ def train_and_evaluate(documents, architecture, target_word, epochs=30):
     end_time = time.time()
     
     duration = end_time - start_time
-    print(f"Training Time: {duration:.4f} seconds")
+    print(f"Training Time: {format_time(duration)}")
     
     try:
         similar_words = model.wv.most_similar(target_word.lower(), topn=10)
@@ -95,7 +101,7 @@ def main():
     print(f"{'='*60}")
     print(f"{'Metric':<25} | {'CBOW':<15} | {'Skip-gram':<15}")
     print(f"{'-'*60}")
-    print(f"{'Training Time (s)':<25} | {cbow_time:<15.4f} | {skipgram_time:<15.4f}")
+    print(f"{'Training Time':<25} | {format_time(cbow_time):<15} | {format_time(skipgram_time):<15}")
     print(f"{'-'*60}")
     
     print("\nObservation:")
