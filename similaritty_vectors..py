@@ -1,130 +1,166 @@
 import os
+import sys
 import time
-from gensim.models import Word2Vec
-from nltk.tokenize import sent_tokenize, word_tokenize
 import logging
 import nltk
-# Configure logging to suppress verbose gensim output
-logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
-# Suppress INFO logs from gensim to keep output clean for the user
+from gensim.models import Word2Vec
+from nltk.tokenize import sent_tokenize, word_tokenize
+
+# -------------------------
+# Logging configuration
+# -------------------------
+logging.basicConfig(
+    format='%(asctime)s : %(levelname)s : %(message)s',
+    level=logging.INFO
+)
 logging.getLogger("gensim").setLevel(logging.WARNING)
 
 
-
-
+# -------------------------
+# NLTK setup (STRICT)
+# -------------------------
 def setup_nltk():
-    """Ensure necessary NLTK data is downloaded."""
-    try:
-        nltk.data.find('tokenizers/punkt')
-    except LookupError:
-        print("Downloading NLTK 'punkt' tokenizer...")
-        nltk.download('punkt')
+    """
+    Ensure required NLTK resources exist.
+    If they cannot be prepared, fail hard.
+    """
+    required_resources = [
+        "tokenizers/punkt"
+    ]
 
+    for resource in required_resources:
+        try:
+            nltk.data.find(resource)
+        except LookupError:
+            print(f"NLTK resource missing: {resource}. Downloading...")
+            nltk.download("punkt")
+
+            # Verify again
+            try:
+                nltk.data.find(resource)
+            except LookupError:
+                print(f"FATAL: Failed to prepare NLTK resource: {resource}")
+                sys.exit(1)  # <-- CI FAILS HERE
+
+
+# -------------------------
+# Data loading (STRICT)
+# -------------------------
 def load_data(data_dir):
-    """Load and tokenize data from text files in the directory."""
     documents = []
     print(f"Loading data from {data_dir}...")
-    
+
     if not os.path.exists(data_dir):
-        print(f"Error: Directory {data_dir} not found.")
-        return []
+        print(f"FATAL: Data directory not found: {data_dir}")
+        sys.exit(1)  # <-- CI FAILS HERE
 
     file_count = 0
+    error_count = 0
+
     for filename in os.listdir(data_dir):
         if filename.endswith(".txt"):
             file_path = os.path.join(data_dir, filename)
             try:
-                with open(file_path, 'r', encoding='utf-8') as f:
+                with open(file_path, "r", encoding="utf-8") as f:
                     text = f.read()
-                    # Tokenize into sentences, then words
                     sentences = sent_tokenize(text)
+
                     for sentence in sentences:
-                        # Simple preprocessing: lowercase and tokenization
-                        tokens = [word.lower() for word in word_tokenize(sentence) if word.isalnum()]
+                        tokens = [
+                            word.lower()
+                            for word in word_tokenize(sentence)
+                            if word.isalnum()
+                        ]
                         if tokens:
                             documents.append(tokens)
+
                 file_count += 1
+
             except Exception as e:
+                error_count += 1
                 print(f"Error reading {filename}: {e}")
-    
-    print(f"Loaded {len(documents)} sentences from {file_count} files.")
+
+    print(f"Processed {file_count} files with {error_count} errors.")
+    print(f"Loaded {len(documents)} sentences.")
+
+    if not documents:
+        print("FATAL: No usable data loaded.")
+        sys.exit(1)  # <-- CI FAILS HERE
+
     return documents
 
+
+# -------------------------
+# Utility
+# -------------------------
 def format_time(seconds):
-    """Format time in seconds or milliseconds."""
     if seconds < 1.0:
         return f"{seconds * 1000:.2f} ms"
     return f"{seconds:.4f} s"
 
+
+# -------------------------
+# Training
+# -------------------------
 def train_and_evaluate(documents, architecture, target_word, epochs=30):
-    """Train Word2Vec model and evaluate."""
     sg_param = 1 if architecture == "Skip-gram" else 0
+
     print(f"\n{'='*60}")
     print(f"Training Model: {architecture}")
     print(f"{'='*60}")
-    
+
     start_time = time.time()
-    # Initialize and train the model
-    # vector_size=100, window=5, min_count=2 are standard baselines
-    model = Word2Vec(sentences=documents, vector_size=100, window=5, min_count=1, workers=4, sg=sg_param, epochs=epochs)
-    end_time = time.time()
-    
-    duration = end_time - start_time
+
+    try:
+        model = Word2Vec(
+            sentences=documents,
+            vector_size=100,
+            window=5,
+            min_count=1,
+            workers=4,
+            sg=sg_param,
+            epochs=epochs
+        )
+    except Exception as e:
+        print(f"FATAL: Word2Vec training failed: {e}")
+        sys.exit(1)  # <-- CI FAILS HERE
+
+    duration = time.time() - start_time
     print(f"Training Time: {format_time(duration)}")
-    
+
     try:
         similar_words = model.wv.most_similar(target_word.lower(), topn=10)
-        print(f"\nTop 10 words similar to '{target_word}':")
-        print(f"{'-'*40}")
-        print(f"{'Rank':<5} | {'Word':<20} | {'Similarity':<10}")
-        print(f"{'-'*40}")
+        print(f"\nTop words similar to '{target_word}':")
         for rank, (word, similarity) in enumerate(similar_words, 1):
-            print(f"{rank:<5} | {word:<20} | {similarity:.4f}")
-        print(f"{'-'*40}")
+            print(f"{rank:>2}. {word:<20} {similarity:.4f}")
     except KeyError:
-        print(f"Example word '{target_word}' not found in vocabulary.")
-        
+        print(f"Warning: '{target_word}' not in vocabulary.")
+
     return duration
 
-def main():
 
-    
+# -------------------------
+# Main (THE JUDGE)
+# -------------------------
+def main():
+    setup_nltk()
+
     data_directory = os.path.join(os.getcwd(), "Data")
     documents = load_data(data_directory)
-    
-    if not documents:
-        print("No data loaded. Exiting.")
-        return
 
-    target_word = "Trump" # As requested
-    
-    # Model A: CBOW (sg=0)
+    target_word = "Trump"
+
     cbow_time = train_and_evaluate(documents, "CBOW", target_word)
-    
-    # Model B: Skip-gram (sg=1)
     skipgram_time = train_and_evaluate(documents, "Skip-gram", target_word)
-    
-    # Comparison
-    print(f"\n\n{'='*60}")
-    print("ARCHITECHTURE BATTLE: CBOW vs. Skip-gram")
+
+    print(f"\n{'='*60}")
+    print("ARCHITECTURE BATTLE: CBOW vs. Skip-gram")
     print(f"{'='*60}")
-    print(f"{'Metric':<25} | {'CBOW':<15} | {'Skip-gram':<15}")
-    print(f"{'-'*60}")
-    print(f"{'Training Time':<25} | {format_time(cbow_time):<15} | {format_time(skipgram_time):<15}")
-    print(f"{'-'*60}")
-    
-    print("\nObservation:")
-    if cbow_time < skipgram_time:
-        factor = skipgram_time / cbow_time if cbow_time > 0 else 0
-        print(f"-> CBOW was faster ({factor:.2f}x).")
-    else:
-        print("-> Skip-gram was faster (or equal).")
-        
-    print("\nNext Steps:")
-    print("1. Compare quality qualitatively (see tables above).")
-    print("2. Try larger datasets for more distinct performance differences.")
-    print(f"{'='*60}\n")
-    print("End of program. Have a nice day!")
+    print(f"CBOW Time     : {format_time(cbow_time)}")
+    print(f"Skip-gram Time: {format_time(skipgram_time)}")
+
+    print("\nRun completed successfully.")
+
 
 if __name__ == "__main__":
     main()
