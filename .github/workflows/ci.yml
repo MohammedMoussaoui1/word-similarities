@@ -30,18 +30,17 @@ jobs:
 
   # JOB 2: The Packaging (Docker)
   build-docker:
-    needs: test # WHY? Because we don't build a box for broken code.
+    needs: test
     runs-on: ubuntu-latest
     steps:
+      # THIS IS THE MISSING PIECE: Download the code onto this new runner
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Build Docker Image
         run: |
-          # We tag it with 'latest' for now
           docker build -t similarity-app:latest .
 
       - name: Test Docker Image
         run: |
-          # We run the container to make sure it can find the Data folder inside Docker
           docker run --rm similarity-app:latest
