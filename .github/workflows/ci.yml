@@ -4,8 +4,7 @@ on:
   push:
     branches:
       - main
-      - backend_dev
-      - frontend_dev
+      - feature/better-comparison-output
 
 jobs:
   test:
