@@ -1,0 +1,1 @@
+## This file is used to calculate the similarity between two documents and to separate logic  behind it 
