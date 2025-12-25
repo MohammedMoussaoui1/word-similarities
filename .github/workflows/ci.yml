@@ -7,9 +7,9 @@ on:
       - feature/better-comparison-output
 
 jobs:
+  # JOB 1: The Quality Gate
   test:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -27,3 +27,21 @@ jobs:
       - name: Run script
         run: |
           python similaritty_vectors..py
+
+  # JOB 2: The Packaging (Docker)
+  build-docker:
+    needs: test # WHY? Because we don't build a box for broken code.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker Image
+        run: |
+          # We tag it with 'latest' for now
+          docker build -t similarity-app:latest .
+
+      - name: Test Docker Image
+        run: |
+          # We run the container to make sure it can find the Data folder inside Docker
+          docker run --rm similarity-app:latest
