@@ -45,7 +45,9 @@ def load_data(data_dir):
 def train_and_evaluate(documents, architecture, target_word, epochs=30):
     """Train Word2Vec model and evaluate."""
     sg_param = 1 if architecture == "Skip-gram" else 0
-    print(f"\n--- Training Model ({architecture}) ---")
+    print(f"\n{'='*60}")
+    print(f"Training Model: {architecture}")
+    print(f"{'='*60}")
     
     start_time = time.time()
     # Initialize and train the model
@@ -58,16 +60,19 @@ def train_and_evaluate(documents, architecture, target_word, epochs=30):
     
     try:
         similar_words = model.wv.most_similar(target_word.lower(), topn=10)
-        print(f"Top 10 words similar to '{target_word}':")
-        for word, similarity in similar_words:
-            print(f"  {word}: {similarity:.4f}")
+        print(f"\nTop 10 words similar to '{target_word}':")
+        print(f"{'-'*40}")
+        print(f"{'Rank':<5} | {'Word':<20} | {'Similarity':<10}")
+        print(f"{'-'*40}")
+        for rank, (word, similarity) in enumerate(similar_words, 1):
+            print(f"{rank:<5} | {word:<20} | {similarity:.4f}")
+        print(f"{'-'*40}")
     except KeyError:
         print(f"Example word '{target_word}' not found in vocabulary.")
         
     return duration
 
 def main():
-    
     
     data_directory = os.path.join(os.getcwd(), "Data")
     documents = load_data(data_directory)
@@ -85,22 +90,26 @@ def main():
     skipgram_time = train_and_evaluate(documents, "Skip-gram", target_word)
     
     # Comparison
-    print("\n\n=== Architecture Battle: CBOW vs. Skip-gram ===")
-    print(f"CBOW Training Time:      {cbow_time:.4f} s")
-    print(f"Skip-gram Training Time: {skipgram_time:.4f} s")
-    print("\nObservation:")
-    print("CBOW was faster in this run.")
+    print(f"\n\n{'='*60}")
+    print("ARCHITECHTURE BATTLE: CBOW vs. Skip-gram")
+    print(f"{'='*60}")
+    print(f"{'Metric':<25} | {'CBOW':<15} | {'Skip-gram':<15}")
+    print(f"{'-'*60}")
+    print(f"{'Training Time (s)':<25} | {cbow_time:<15.4f} | {skipgram_time:<15.4f}")
+    print(f"{'-'*60}")
     
-    if skipgram_time > cbow_time:
-        factor = skipgram_time / cbow_time
-        print(f"CBOW was {factor:.2f}x faster.")
-    else:
-        print("CBOW was not faster in this run (dataset might be too small).")
-        
     print("\nObservation:")
-    print("Does Skip-gram provide qualitatively better results for 'Trump'?")
-    print("end of the program, have a nice day")
-    print
+    if cbow_time < skipgram_time:
+        factor = skipgram_time / cbow_time if cbow_time > 0 else 0
+        print(f"-> CBOW was faster ({factor:.2f}x).")
+    else:
+        print("-> Skip-gram was faster (or equal).")
+        
+    print("\nNext Steps:")
+    print("1. Compare quality qualitatively (see tables above).")
+    print("2. Try larger datasets for more distinct performance differences.")
+    print(f"{'='*60}\n")
+    print("End of program. Have a nice day!")
 
 if __name__ == "__main__":
     main()
