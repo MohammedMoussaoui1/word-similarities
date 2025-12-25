@@ -4,8 +4,7 @@ on:
   push:
     branches:
       - main
-      - backend_dev
-      - frontend_dev
+      - feature/better-comparison-output
 
 jobs:
   test:
@@ -26,4 +25,4 @@ jobs:
 
       - name: Run script
         run: |
-          python similarity_vectors..py
+          python similaritty_vectors..py
