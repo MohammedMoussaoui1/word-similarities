@@ -87,7 +87,7 @@ def train_and_evaluate(documents, architecture, target_word, epochs=30):
     return duration
 
 def main():
-    setup_nltk()
+
     
     data_directory = os.path.join(os.getcwd(), "Data")
     documents = load_data(data_directory)
