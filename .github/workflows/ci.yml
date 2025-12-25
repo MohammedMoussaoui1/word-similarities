@@ -25,4 +25,4 @@ jobs:
 
       - name: Run script
         run: |
-          python similarity_vectors..py
+          python similaritty_vectors..py
