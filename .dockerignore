@@ -1,0 +1,7 @@
+# 1. Ignore EVERYTHING in the folder
+*
+
+# 2. But DO NOT ignore these specific things (using the '!' symbol)
+!Data/
+!similaritty_vectors..py
+!requirements.txt
