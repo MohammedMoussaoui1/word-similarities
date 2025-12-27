@@ -33,7 +33,7 @@ jobs:
           print("Imports OK")
           EOF
 
-  # JOB 2: Docker is the source of truth
+  # JOB 2: Docker build, test and push to GHCR
   docker-build-test-push:
     name: Build, Test & Push Docker Image
     runs-on: ubuntu-latest
@@ -43,24 +43,31 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Build Docker image
-        run: |
-          docker build \
-            -t ghcr.io/${{ github.repository }}/similarity-app:${{ github.sha }} \
-            .
-
-      - name: Run container (must succeed)
-        run: |
-          docker run --rm \
-            -v ${{ github.workspace }}/Data:/app/Data \
-            ghcr.io/${{ github.repository }}/similarity-app:${{ github.sha }}
-
       - name: Login to GitHub Container Registry
         run: |
           echo $GITHUB_TOKEN | docker login ghcr.io \
             -u $GITHUB_ACTOR \
             --password-stdin
 
-      - name: Push image to GHCR
+      - name: Set image tags
+        id: image-tags
         run: |
-          docker push ghcr.io/${{ github.repository }}/similarity-app:${{ github.sha }}
+          # Lowercase tags: branch + short SHA
+          BRANCH_TAG=$(echo "${GITHUB_REF##*/}" | tr '[:upper:]' '[:lower:]')
+          SHORT_SHA=${GITHUB_SHA::7}
+          IMAGE_TAG="ghcr.io/${{ github.repository }}/similarity-app:${BRANCH_TAG}-${SHORT_SHA}"
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+
+      - name: Build Docker image
+        run: |
+          docker build -t $IMAGE_TAG .
+
+      - name: Run container to verify it works
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}/Data:/app/Data \
+            $IMAGE_TAG
+
+      - name: Push Docker image to GHCR
+        run: |
+          docker push $IMAGE_TAG
