@@ -35,7 +35,7 @@ jobs:
           print("Imports OK")
           EOF
 
-  # JOB 2: Real test = Docker (source of truth)
+  # JOB 2: Real test = Docker (source of truth) this iis the most important one
   docker-test:
     name: Build & Test Docker Image
     runs-on: ubuntu-latest
